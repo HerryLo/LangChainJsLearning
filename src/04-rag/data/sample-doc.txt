@@ -1,0 +1,19 @@
+LangChain 是一个用于开发由语言模型驱动的应用程序的框架。它提供了一套丰富的工具和组件，使得构建复杂的 LLM 应用变得更加容易。
+
+主要概念：
+
+1. Models（模型）：LangChain 支持多种 LLM，包括 OpenAI、Anthropic、Hugging Face 等。你可以轻松切换不同的模型提供商。
+
+2. Prompts（提示）：提示模板让你可以动态生成提示，包含变量、格式化指令等。
+
+3. Chains（链）：链将多个组件串联起来，实现复杂的工作流。例如先检索文档，再根据文档回答问题。
+
+4. Retrieval（检索）：RAG（检索增强生成）允许你将自己的数据注入到 LLM 中，让 LLM 基于你的数据回答问题。
+
+5. Agents（代理）：代理让 LLM 可以自主决定使用什么工具，完成复杂的任务。
+
+LangChain 有 Python 和 JavaScript/TypeScript 两个版本，可以根据你的技术栈选择。
+
+安装方法：
+- Python: pip install langchain
+- JavaScript: npm install langchain

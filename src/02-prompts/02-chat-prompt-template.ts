@@ -3,10 +3,10 @@ import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 
 const model = new ChatOpenAI({
-  model: "glm-4",
+  model: "DeepSeek-V4-Pro",
   temperature: 0.7,
   configuration: {
-    baseURL: "https://open.bigmodel.cn/api/paas/v4/",
+    baseURL: "https://ark.cn-beijing.volces.com/api/coding/v3",
     apiKey: process.env.ZHIPUAI_API_KEY,
   },
 });

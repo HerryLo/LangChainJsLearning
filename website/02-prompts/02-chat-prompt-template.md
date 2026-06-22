@@ -4,7 +4,25 @@ title: 02-chat-prompt-template.ts
 
 # 02-chat-prompt-template.ts
 
-对话式提示模板示例。
+使用 ChatPromptTemplate 构建对话式提示模板，支持多角色消息和变量替换。
+
+## 功能介绍
+
+这个示例演示了如何使用 ChatPromptTemplate 创建对话风格的提示模板。你可以定义 system 和 user 消息，并在其中插入变量，实现灵活的提示生成。
+
+## 使用场景
+
+- 多语言翻译工具
+- 角色设定对话机器人
+- 需要动态替换内容的对话系统
+- 标准化的提示格式生成
+
+## 学习要点
+
+1. 使用 `ChatPromptTemplate.fromMessages()` 创建对话模板
+2. system 和 user 消息格式：`["system", "内容"]`、`["user", "内容"]`
+3. 使用 `{变量名}` 定义可替换的变量
+4. 使用 `format()` 方法传入实际值生成完整提示
 
 ## 源码
 

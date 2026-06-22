@@ -4,7 +4,26 @@ title: 03-output-parser.ts
 
 # 03-output-parser.ts
 
-结构化输出解析器示例，使用 Zod 定义输出结构。
+使用 Zod 定义结构化输出格式，让 AI 返回可解析的数据。
+
+## 功能介绍
+
+这个示例演示了如何使用 StructuredOutputParser 和 Zod schema 来定义期望的输出格式。AI 会按照指定的结构返回数据，我们可以直接解析使用。
+
+## 使用场景
+
+- 情感分析任务
+- 数据提取（如从文本中提取联系人信息）
+- API 参数生成
+- 分类任务的结构化结果
+- 需要后续程序处理的 AI 输出
+
+## 学习要点
+
+1. 使用 Zod 定义 schema：`z.object()`、`z.enum()`、`z.number()` 等
+2. 使用 `StructuredOutputParser.fromZodSchema()` 创建解析器
+3. 使用 `parser.getFormatInstructions()` 获取格式说明插入提示中
+4. 使用 `parser.parse()` 解析 AI 返回的内容
 
 ## 源码
 

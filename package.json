@@ -4,14 +4,17 @@
   "type": "module",
   "scripts": {
     "dev": "tsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "docs:dev": "cd website && npm run dev",
+    "docs:build": "cd website && npm run build",
+    "docs:preview": "cd website && npm run preview"
   },
   "dependencies": {
-    "@langchain/community": "^0.3.0",
-    "@langchain/core": "^0.3.0",
-    "@langchain/openai": "^0.3.0",
+    "@langchain/community": "^1.1.29",
+    "@langchain/core": "^1.2.0",
+    "@langchain/openai": "^1.5.1",
     "dotenv": "^16.4.0",
-    "langchain": "^0.3.0",
+    "langchain": "^1.5.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {

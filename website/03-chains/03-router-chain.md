@@ -19,11 +19,10 @@ title: 03-router-chain.ts
 
 ## 学习要点
 
-1. 先用一个分类链判断输入类型
-2. 使用 Zod 和 StructuredOutputParser 获取结构化的分类结果
-3. 根据分类结果用 switch-case 选择对应的提示模板
-4. 构建并执行最终的回答链
-5. 进行环境变量检查和错误处理
+1. 使用 `withStructuredOutput()` 进行分类决策（推荐方式）
+2. 使用 `switch` 语句根据分类结果选择不同的处理链
+3. 使用 LCEL `.pipe()` 组合提示、模型和输出解析器
+4. 进行环境变量检查和错误处理
 
 ## 源码
 
@@ -33,7 +32,6 @@ import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { z } from "zod";
-import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 if (!process.env.ZHIPUAI_API_KEY) {
   throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
@@ -52,22 +50,11 @@ async function main() {
   try {
     console.log("=== 路由链示例 ===\n");
 
+    // 使用 withStructuredOutput 进行分类
     const classificationSchema = z.object({
       category: z.enum(["tech", "cooking", "general"]).describe("问题类别"),
     });
-    const classificationParser = StructuredOutputParser.fromZodSchema(classificationSchema);
-
-    const classificationPrompt = ChatPromptTemplate.fromTemplate(`
-      将以下问题分类为 tech（技术）、cooking（烹饪）或 general（一般）。
-
-      {format_instructions}
-
-      问题: {question}
-    `);
-
-    const classificationChain = classificationPrompt
-      .pipe(model)
-      .pipe(classificationParser);
+    const classifier = model.withStructuredOutput(classificationSchema);
 
     const techPrompt = ChatPromptTemplate.fromTemplate(
       "你是一个技术专家。请回答以下技术问题：\n{question}"
@@ -83,10 +70,9 @@ async function main() {
     console.log("问题:", question);
     console.log("\n---\n");
 
-    const classification = await classificationChain.invoke({
-      format_instructions: classificationParser.getFormatInstructions(),
-      question,
-    });
+    const classification = await classifier.invoke(
+      `将以下问题分类为 tech（技术）、cooking（烹饪）或 general（一般）：\n${question}`
+    );
 
     console.log("分类结果:", classification.category);
     console.log("\n---\n");

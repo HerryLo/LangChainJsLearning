@@ -3,7 +3,6 @@ import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { z } from "zod";
-import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 if (!process.env.ZHIPUAI_API_KEY) {
   throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
@@ -22,22 +21,11 @@ async function main() {
   try {
     console.log("=== 路由链示例 ===\n");
 
+    // 使用 withStructuredOutput 进行分类
     const classificationSchema = z.object({
       category: z.enum(["tech", "cooking", "general"]).describe("问题类别"),
     });
-    const classificationParser = StructuredOutputParser.fromZodSchema(classificationSchema);
-
-    const classificationPrompt = ChatPromptTemplate.fromTemplate(`
-      将以下问题分类为 tech（技术）、cooking（烹饪）或 general（一般）。
-
-      {format_instructions}
-
-      问题: {question}
-    `);
-
-    const classificationChain = classificationPrompt
-      .pipe(model)
-      .pipe(classificationParser);
+    const classifier = model.withStructuredOutput(classificationSchema);
 
     const techPrompt = ChatPromptTemplate.fromTemplate(
       "你是一个技术专家。请回答以下技术问题：\n{question}"
@@ -53,10 +41,9 @@ async function main() {
     console.log("问题:", question);
     console.log("\n---\n");
 
-    const classification = await classificationChain.invoke({
-      format_instructions: classificationParser.getFormatInstructions(),
-      question,
-    });
+    const classification = await classifier.invoke(
+      `将以下问题分类为 tech（技术）、cooking（烹饪）或 general（一般）：\n${question}`
+    );
 
     console.log("分类结果:", classification.category);
     console.log("\n---\n");

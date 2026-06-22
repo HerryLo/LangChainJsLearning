@@ -4,7 +4,25 @@ title: 02-chat-model.ts
 
 # 02-chat-model.ts
 
-多轮对话示例，展示如何使用 SystemMessage 和 HumanMessage。
+多轮对话示例，展示如何使用 SystemMessage 和 HumanMessage 构建对话历史。
+
+## 功能介绍
+
+这个示例演示了如何使用 LangChain 的消息类型进行多轮对话。通过将 AI 的回复也加入消息数组，可以让模型记住之前的对话内容，实现连贯的多轮交流。
+
+## 使用场景
+
+- 多轮对话机器人
+- 角色设定（如编程助手、客服等）
+- 需要上下文记忆的对话应用
+- 对话历史追踪和展示
+
+## 学习要点
+
+1. 三种消息类型：SystemMessage（系统设定）、HumanMessage（用户输入）、AIMessage（AI 回复）
+2. 如何构建初始对话数组
+3. 如何使用 `push()` 方法追加消息，实现多轮对话
+4. 每次调用 `model.invoke()` 时传入完整的消息数组
 
 ## 源码
 

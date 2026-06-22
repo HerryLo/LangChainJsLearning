@@ -4,7 +4,25 @@ title: 01-llm-chain.ts
 
 # 01-llm-chain.ts
 
-LLM 链示例，使用 LCEL 语法构建链。
+使用 LCEL 构建基本的 LLM 链，将提示模板、模型和输出解析器串联起来。
+
+## 功能介绍
+
+这个示例演示了如何使用 LangChain Expression Language (LCEL) 的 `.pipe()` 语法来构建基本的链。链将提示模板、模型调用和输出解析器组合成一个可重用的工作流。
+
+## 使用场景
+
+- 标准化的问答任务
+- 需要重复执行相似流程的任务
+- 简单的文本生成应用
+- 链式调用的基础构建块
+
+## 学习要点
+
+1. 使用 `.pipe()` 方法串联组件
+2. `promptTemplate.pipe(model).pipe(parser)` 的基本链式结构
+3. 使用 `chain.invoke()` 传入输入并执行整个链
+4. `StringOutputParser` 将模型输出转换为字符串
 
 ## 源码
 

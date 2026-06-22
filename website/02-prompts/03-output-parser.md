@@ -8,7 +8,7 @@ title: 03-output-parser.ts
 
 ## 功能介绍
 
-这个示例演示了如何使用 StructuredOutputParser 和 Zod schema 来定义期望的输出格式。AI 会按照指定的结构返回数据，我们可以直接解析使用。
+这个示例演示了如何使用 `model.withStructuredOutput()` 配合 Zod schema 来定义期望的输出格式。AI 会直接返回符合 schema 的结构化对象，无需手动解析。
 
 ## 使用场景
 

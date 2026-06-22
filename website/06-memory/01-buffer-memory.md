@@ -4,7 +4,25 @@ title: 01-buffer-memory.ts
 
 # 01-buffer-memory.ts
 
-完整对话历史记忆示例。
+完整对话历史记忆示例，保留所有对话消息。
+
+## 功能介绍
+
+这个示例演示了如何使用 RunnableWithMessageHistory 让链记住对话历史。每次调用时，历史消息会自动添加到提示中，让 AI 知道之前说过什么。
+
+## 使用场景
+
+- 对话机器人应用
+- 需要记住上下文的聊天系统
+- 多轮对话场景
+- 客户服务聊天机器人
+
+## 学习要点
+
+1. 在提示模板中使用 `MessagesPlaceholder("history")` 占位
+2. 创建 `ChatMessageHistory` 实例存储消息
+3. 使用 `RunnableWithMessageHistory` 包装原有的链
+4. 调用时需要传入 `configurable: { sessionId: "..." }` 来标识会话
 
 ## 源码
 
@@ -70,7 +88,9 @@ async function main() {
 
 main().catch(console.error);
 ```
+
 ## 运行方式
+
 ```bash
 npm run dev src/06-memory/01-buffer-memory.ts
 ```

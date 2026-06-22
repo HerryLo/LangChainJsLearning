@@ -1,53 +1,59 @@
 import "dotenv/config";
-import { TextLoader } from "langchain/document_loaders/fs/text";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { Document } from "@langchain/core/documents";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
-import * as path from "path";
-import { fileURLToPath } from "url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+if (!process.env.ZHIPUAI_API_KEY) {
+  throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
+}
 
 async function main() {
-  console.log("=== Vector Store 示例 ===\n");
+  try {
+    console.log("=== Embeddings Example ===\n");
 
-  // 1. 加载文档
-  const loader = new TextLoader(path.join(__dirname, "data", "sample-doc.txt"));
-  const docs = await loader.load();
+    // 创建示例文档
+    const doc = new Document({
+      pageContent: "LangChain 是一个用于开发由语言模型驱动的应用程序的框架。它提供了一套丰富的工具和组件。",
+      metadata: { source: "example" }
+    });
 
-  // 2. 切分文档
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 200,
-    chunkOverlap: 20,
-  });
-  const chunks = await splitter.splitDocuments(docs);
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 100,
+      chunkOverlap: 20,
+    });
 
-  // 3. 创建向量存储
-  const embeddings = new OpenAIEmbeddings({
-    modelName: "embedding-3",
-    configuration: {
-      baseURL: "https://open.bigmodel.cn/api/paas/v4/",
-      apiKey: process.env.ZHIPUAI_API_KEY,
-    },
-  });
+    const chunks: Document[] = await splitter.splitDocuments([doc]);
 
-  const vectorStore = await MemoryVectorStore.fromDocuments(
-    chunks,
-    embeddings
-  );
+    // 创建 embeddings
+    const embeddings = new OpenAIEmbeddings({
+      model: "embedding-3",
+      configuration: {
+        baseURL: "https://ark.cn-beijing.volces.com/api/coding/v3/",
+        apiKey: process.env.ZHIPUAI_API_KEY,
+      },
+    });
 
-  // 4. 相似度搜索
-  const query = "LangChain 的主要概念有哪些？";
-  console.log("查询:", query);
-  console.log("\n");
+    // 嵌入单个文本
+    const query = "LangChain 的主要概念有哪些？";
+    const queryEmbedding = await embeddings.embedQuery(query);
 
-  const results = await vectorStore.similaritySearch(query, 2);
+    console.log("Query:", query);
+    console.log("Embedding dimension:", queryEmbedding.length);
+    console.log("First 5 values:", queryEmbedding.slice(0, 5));
+    console.log("\n");
 
-  console.log("最相关的文档块:");
-  results.forEach((doc, i) => {
-    console.log(`\n--- 结果 ${i + 1} ---`);
-    console.log(doc.pageContent);
-  });
+    // 嵌入文档块
+    const chunkTexts = chunks.map((chunk: Document) => chunk.pageContent);
+    const chunkEmbeddings = await embeddings.embedDocuments(chunkTexts);
+
+    console.log("Embedded", chunkEmbeddings.length, "chunks");
+    chunkTexts.forEach((text: string, i: number) => {
+      console.log(`Chunk ${i + 1}: "${text.slice(0, 50)}..."`);
+    });
+  } catch (error) {
+    console.error("Error during embeddings example:", error);
+    process.exit(1);
+  }
 }
 
 main().catch(console.error);

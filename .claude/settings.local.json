@@ -5,7 +5,14 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(npm install *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(git push *)",
+      "WebFetch(domain:docs.langchain.com)",
+      "WebSearch",
+      "Bash(git rm *)",
+      "Bash(npm show *)",
+      "Bash(git ls-tree *)",
+      "Bash(git checkout *)"
     ]
   }
 }

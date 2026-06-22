@@ -4,46 +4,54 @@ title: 01-document-loader.ts
 
 # 01-document-loader.ts
 
-文档加载器示例，从文件系统读取文档内容。
+文档对象示例，创建和使用 LangChain 的 Document 对象。
 
 ## 功能介绍
 
-这个示例演示了如何使用 TextLoader 从文件系统加载文本文档。加载后的文档包含内容和元数据，可以进行后续处理。
+这个示例演示了如何创建和使用 LangChain 的 Document 对象。Document 是 LangChain 中文档的基本表示形式，包含内容和元数据。
 
 ## 使用场景
 
-- 从本地文件读取知识库内容
-- 加载文档用于后续处理（如切分、向量化）
-- 构建 RAG 系统的第一步
-- 批量读取多个文档文件
+- 表示文档数据用于后续处理
+- 创建文档块用于切分和向量化
+- 构建自定义文档加载逻辑
+- 理解 LangChain 的文档数据结构
 
 ## 学习要点
 
-1. 使用 `TextLoader` 加载文本文件
-2. 调用 `load()` 方法获取文档数组
-3. 每个文档包含 `pageContent`（内容）和 `metadata`（元数据）
-4. 需要正确处理文件路径（这里使用了 __dirname）
+1. 使用 `Document` 从 `@langchain/core/documents` 创建文档对象
+2. `pageContent` 属性存储文档的文本内容
+3. `metadata` 属性存储文档的元数据（如来源、作者等）
+4. Document 对象可以被切分器和向量化器处理
+5. 进行环境变量检查和错误处理
 
 ## 源码
 
 ```typescript
 import "dotenv/config";
-import { TextLoader } from "langchain/document_loaders/fs/text";
-import * as path from "path";
-import { fileURLToPath } from "url";
+import { Document } from "@langchain/core/documents";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+if (!process.env.ZHIPUAI_API_KEY) {
+  throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
+}
 
 async function main() {
-  console.log("=== Document Loader 示例 ===\n");
+  try {
+    console.log("=== Document Loading 示例 ===\n");
 
-  const textLoader = new TextLoader(path.join(__dirname, "data", "sample-doc.txt"));
-  const docs = await textLoader.load();
+    // 创建一个简单的文档对象
+    const doc = new Document({
+      pageContent: "这是一段示例文档内容。LangChain 是一个用于开发由语言模型驱动的应用程序的框架。",
+      metadata: { source: "example" }
+    });
 
-  console.log("加载的文档数量:", docs.length);
-  console.log("\n文档内容预览:");
-  console.log(docs[0].pageContent.slice(0, 200) + "...");
-  console.log("\n元数据:", docs[0].metadata);
+    console.log("Loaded document:");
+    console.log("Content preview:", doc.pageContent.slice(0, 100));
+    console.log("Metadata:", doc.metadata);
+  } catch (error) {
+    console.error("Error during document loading example:", error);
+    process.exit(1);
+  }
 }
 
 main().catch(console.error);

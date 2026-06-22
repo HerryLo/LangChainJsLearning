@@ -19,10 +19,11 @@ title: 04-transform-chain.ts
 
 ## 学习要点
 
-1. 自定义函数也可以用 `.pipe()` 串联到链中
+1. 使用 `RunnableLambda.from()` 包装自定义函数，然后用 `.pipe()` 串联到链中
 2. 转换函数接收上一步的输出，返回下一步需要的输入
 3. 可以在转换函数中进行任意计算（如字数统计、数据格式化等）
 4. 转换函数应该返回对象格式，方便后续提示模板使用
+5. 进行环境变量检查和错误处理
 
 ## 源码
 
@@ -31,47 +32,57 @@ import "dotenv/config";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import { RunnableLambda } from "@langchain/core/runnables";
+
+if (!process.env.ZHIPUAI_API_KEY) {
+  throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
+}
 
 const model = new ChatOpenAI({
-  model: "glm-4",
+  model: "DeepSeek-V4-Pro",
   temperature: 0.7,
   configuration: {
-    baseURL: "https://open.bigmodel.cn/api/paas/v4/",
+    baseURL: "https://ark.cn-beijing.volces.com/api/coding/v3",
     apiKey: process.env.ZHIPUAI_API_KEY,
   },
 });
 
 async function main() {
-  console.log("=== TransformChain（数据转换）示例 ===\n");
+  try {
+    console.log("=== TransformChain（数据转换）示例 ===\n");
 
-  const transformInput = (input: { text: string }) => ({
-    text: input.text,
-    wordCount: input.text.split(/\s+/).length,
-    characterCount: input.text.length,
-  });
+    const transformInput = RunnableLambda.from((input: { text: string }) => ({
+      text: input.text,
+      wordCount: input.text.split(/\s+/).length,
+      characterCount: input.text.length,
+    }));
 
-  const promptTemplate = ChatPromptTemplate.fromTemplate(`
-    分析以下文本的摘要：
+    const promptTemplate = ChatPromptTemplate.fromTemplate(`
+      分析以下文本的摘要：
 
-    文本: {text}
-    字数统计: {wordCount} 词，{characterCount} 字
+      文本: {text}
+      字数统计: {wordCount} 词，{characterCount} 字
 
-    请提供摘要。
-  `);
+      请提供摘要。
+    `);
 
-  const chain = transformInput
-    .pipe(promptTemplate)
-    .pipe(model)
-    .pipe(new StringOutputParser());
+    const chain = transformInput
+      .pipe(promptTemplate)
+      .pipe(model)
+      .pipe(new StringOutputParser());
 
-  const text = `
-    LangChain 是一个用于开发由语言模型驱动的应用程序的框架。
-    它提供了一套丰富的工具和组件，使得构建复杂的 LLM 应用变得更加容易。
-    无论是简单的聊天机器人还是复杂的智能代理，LangChain 都能帮你实现。
-  `.trim();
+    const text = `
+      LangChain 是一个用于开发由语言模型驱动的应用程序的框架。
+      它提供了一套丰富的工具和组件，使得构建复杂的 LLM 应用变得更加容易。
+      无论是简单的聊天机器人还是复杂的智能代理，LangChain 都能帮你实现。
+    `.trim();
 
-  const result = await chain.invoke({ text });
-  console.log(result);
+    const result = await chain.invoke({ text });
+    console.log(result);
+  } catch (error) {
+    console.error("Error during transform chain example:", error);
+    process.exit(1);
+  }
 }
 
 main().catch(console.error);

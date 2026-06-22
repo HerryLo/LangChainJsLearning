@@ -1,21 +1,27 @@
 import "dotenv/config";
-import { TextLoader } from "langchain/document_loaders/fs/text";
-import * as path from "path";
-import { fileURLToPath } from "url";
+import { Document } from "@langchain/core/documents";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+if (!process.env.ZHIPUAI_API_KEY) {
+  throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
+}
 
 async function main() {
-  console.log("=== Document Loader 示例 ===\n");
+  try {
+    console.log("=== Document Loading Example ===\n");
 
-  // 加载单个文件
-  const textLoader = new TextLoader(path.join(__dirname, "data", "sample-doc.txt"));
-  const docs = await textLoader.load();
+    // 创建一个简单的文档对象
+    const doc = new Document({
+      pageContent: "这是一段示例文档内容。LangChain 是一个用于开发由语言模型驱动的应用程序的框架。",
+      metadata: { source: "example" }
+    });
 
-  console.log("加载的文档数量:", docs.length);
-  console.log("\n文档内容预览:");
-  console.log(docs[0].pageContent.slice(0, 200) + "...");
-  console.log("\n元数据:", docs[0].metadata);
+    console.log("Loaded document:");
+    console.log("Content preview:", doc.pageContent.slice(0, 100));
+    console.log("Metadata:", doc.metadata);
+  } catch (error) {
+    console.error("Error during document loading example:", error);
+    process.exit(1);
+  }
 }
 
 main().catch(console.error);

@@ -20,9 +20,11 @@ title: 03-embeddings.ts
 ## 学习要点
 
 1. 使用 `OpenAIEmbeddings` 创建向量化器
-2. `embedQuery()` 用于向量化单个查询文本
-3. `embedDocuments()` 用于批量向量化多个文档
-4. 向量是浮点数数组，维度取决于模型
+2. 使用 `model` 而不是 `modelName` 参数
+3. `embedQuery()` 用于向量化单个查询文本
+4. `embedDocuments()` 用于批量向量化多个文档
+5. 向量是浮点数数组，维度取决于模型
+6. 进行环境变量检查和错误处理
 
 ## 源码
 
@@ -30,32 +32,43 @@ title: 03-embeddings.ts
 import "dotenv/config";
 import { OpenAIEmbeddings } from "@langchain/openai";
 
+if (!process.env.ZHIPUAI_API_KEY) {
+  throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
+}
+
 async function main() {
-  console.log("=== Embeddings 示例 ===\n");
+  try {
+    console.log("=== Embeddings 示例 ===\n");
 
-  const embeddings = new OpenAIEmbeddings({
-    modelName: "embedding-3",
-    configuration: {
-      baseURL: "https://open.bigmodel.cn/api/paas/v4/",
-      apiKey: process.env.ZHIPUAI_API_KEY,
-    },
-  });
+    const embeddings = new OpenAIEmbeddings({
+      model: "embedding-3",
+      configuration: {
+        baseURL: "https://ark.cn-beijing.volces.com/api/coding/v3/",
+        apiKey: process.env.ZHIPUAI_API_KEY,
+      },
+    });
 
-  const text = "Hello, world!";
-  const embedding = await embeddings.embedQuery(text);
+    // 嵌入单个文本
+    const text = "Hello, world!";
+    const embedding = await embeddings.embedQuery(text);
 
-  console.log("文本:", text);
-  console.log("嵌入维度:", embedding.length);
-  console.log("嵌入向量前 5 个值:", embedding.slice(0, 5));
-  console.log("\n");
+    console.log("文本:", text);
+    console.log("嵌入维度:", embedding.length);
+    console.log("嵌入向量前 5 个值:", embedding.slice(0, 5));
+    console.log("\n");
 
-  const texts = ["猫是宠物", "狗是宠物", "鱼是宠物"];
-  const embeddingsResult = await embeddings.embedDocuments(texts);
+    // 嵌入多个文本
+    const texts = ["猫是宠物", "狗是宠物", "鱼是宠物"];
+    const embeddingsResult = await embeddings.embedDocuments(texts);
 
-  console.log("嵌入多个文本:");
-  texts.forEach((t, i) => {
-    console.log(`  "${t}" → 维度 ${embeddingsResult[i].length}`);
-  });
+    console.log("嵌入多个文本:");
+    texts.forEach((t, i) => {
+      console.log(`  "${t}" → 维度 ${embeddingsResult[i].length}`);
+    });
+  } catch (error) {
+    console.error("Error during embeddings example:", error);
+    process.exit(1);
+  }
 }
 
 main().catch(console.error);

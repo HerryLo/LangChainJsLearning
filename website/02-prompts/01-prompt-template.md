@@ -22,6 +22,7 @@ title: 01-prompt-template.ts
 2. 使用 `{变量名}` 定义占位变量
 3. 使用 `format()` 方法传入实际值生成完整提示
 4. 模板可以反复使用，只需替换不同的变量值
+5. 进行环境变量检查和错误处理
 
 ## 源码
 
@@ -30,28 +31,37 @@ import "dotenv/config";
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 
+if (!process.env.ZHIPUAI_API_KEY) {
+  throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
+}
+
 const model = new ChatOpenAI({
-  model: "GLM-5.1",
+  model: "Doubao-Seed-2.0-Code",
   temperature: 0.7,
 });
 
 async function main() {
-  console.log("=== PromptTemplate 示例 ===\n");
+  try {
+    console.log("=== PromptTemplate 示例 ===\n");
 
-  const promptTemplate = PromptTemplate.fromTemplate(
-    "你是一个专业的 {profession}。请用通俗易懂的方式解释 {topic}。"
-  );
+    const promptTemplate = PromptTemplate.fromTemplate(
+      "你是一个专业的 {profession}。请用通俗易懂的方式解释 {topic}。"
+    );
 
-  const prompt = await promptTemplate.format({
-    profession: "翻译员",
-    topic: "Hello World 这句话的意思",
-  });
+    const prompt = await promptTemplate.format({
+      profession: "程序员",
+      topic: "什么是递归",
+    });
 
-  console.log("生成的 Prompt:", prompt);
-  console.log("\n---\n");
+    console.log("生成的 Prompt:", prompt);
+    console.log("\n---\n");
 
-  const response = await model.invoke(prompt);
-  console.log("AI 回复:", response.content);
+    const response = await model.invoke(prompt);
+    console.log("AI 回复:", response.content);
+  } catch (error) {
+    console.error("Error during prompt template example:", error);
+    process.exit(1);
+  }
 }
 
 main().catch(console.error);

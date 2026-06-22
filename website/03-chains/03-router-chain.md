@@ -23,6 +23,7 @@ title: 03-router-chain.ts
 2. 使用 Zod 和 StructuredOutputParser 获取结构化的分类结果
 3. 根据分类结果用 switch-case 选择对应的提示模板
 4. 构建并执行最终的回答链
+5. 进行环境变量检查和错误处理
 
 ## 源码
 
@@ -34,75 +35,84 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 import { z } from "zod";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
+if (!process.env.ZHIPUAI_API_KEY) {
+  throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
+}
+
 const model = new ChatOpenAI({
-  model: "glm-4",
+  model: "DeepSeek-V4-Pro",
   temperature: 0.7,
   configuration: {
-    baseURL: "https://open.bigmodel.cn/api/paas/v4/",
+    baseURL: "https://ark.cn-beijing.volces.com/api/coding/v3",
     apiKey: process.env.ZHIPUAI_API_KEY,
   },
 });
 
 async function main() {
-  console.log("=== 路由链示例 ===\n");
+  try {
+    console.log("=== 路由链示例 ===\n");
 
-  const classificationSchema = z.object({
-    category: z.enum(["tech", "cooking", "general"]).describe("问题类别"),
-  });
-  const classificationParser = StructuredOutputParser.fromZodSchema(classificationSchema);
+    const classificationSchema = z.object({
+      category: z.enum(["tech", "cooking", "general"]).describe("问题类别"),
+    });
+    const classificationParser = StructuredOutputParser.fromZodSchema(classificationSchema);
 
-  const classificationPrompt = ChatPromptTemplate.fromTemplate(`
-    将以下问题分类为 tech（技术）、cooking（烹饪）或 general（一般）。
+    const classificationPrompt = ChatPromptTemplate.fromTemplate(`
+      将以下问题分类为 tech（技术）、cooking（烹饪）或 general（一般）。
 
-    {format_instructions}
+      {format_instructions}
 
-    问题: {question}
-  `);
+      问题: {question}
+    `);
 
-  const classificationChain = classificationPrompt
-    .pipe(model)
-    .pipe(classificationParser);
+    const classificationChain = classificationPrompt
+      .pipe(model)
+      .pipe(classificationParser);
 
-  const techPrompt = ChatPromptTemplate.fromTemplate(
-    "你是一个技术专家。请回答以下技术问题：\n{question}"
-  );
-  const cookingPrompt = ChatPromptTemplate.fromTemplate(
-    "你是一个厨师。请回答以下烹饪问题：\n{question}"
-  );
-  const generalPrompt = ChatPromptTemplate.fromTemplate(
-    "请回答以下问题：\n{question}"
-  );
+    const techPrompt = ChatPromptTemplate.fromTemplate(
+      "你是一个技术专家。请回答以下技术问题：\n{question}"
+    );
+    const cookingPrompt = ChatPromptTemplate.fromTemplate(
+      "你是一个厨师。请回答以下烹饪问题：\n{question}"
+    );
+    const generalPrompt = ChatPromptTemplate.fromTemplate(
+      "请回答以下问题：\n{question}"
+    );
 
-  const question = "怎么做红烧肉？";
-  console.log("问题:", question);
-  console.log("\n---\n");
+    const question = "怎么做红烧肉？";
+    console.log("问题:", question);
+    console.log("\n---\n");
 
-  const classification = await classificationChain.invoke({
-    format_instructions: classificationParser.getFormatInstructions(),
-    question,
-  });
+    const classification = await classificationChain.invoke({
+      format_instructions: classificationParser.getFormatInstructions(),
+      question,
+    });
 
-  console.log("分类结果:", classification.category);
-  console.log("\n---\n");
+    console.log("分类结果:", classification.category);
+    console.log("\n---\n");
 
-  let selectedPrompt;
-  switch (classification.category) {
-    case "tech":
-      selectedPrompt = techPrompt;
-      break;
-    case "cooking":
-      selectedPrompt = cookingPrompt;
-      break;
-    default:
-      selectedPrompt = generalPrompt;
+    let selectedPrompt;
+    switch (classification.category) {
+      case "tech":
+        selectedPrompt = techPrompt;
+        break;
+      case "cooking":
+        selectedPrompt = cookingPrompt;
+        break;
+      default:
+        selectedPrompt = generalPrompt;
+    }
+
+    const answerChain = selectedPrompt
+      .pipe(model)
+      .pipe(new StringOutputParser());
+
+    const result = await answerChain.invoke({ question });
+    console.log(result);
+  } catch (error) {
+    console.error("Error during router chain example:", error);
+    process.exit(1);
   }
-
-  const answerChain = selectedPrompt
-    .pipe(model)
-    .pipe(new StringOutputParser());
-
-  const result = await answerChain.invoke({ question });
-  console.log(result);
 }
 
 main().catch(console.error);

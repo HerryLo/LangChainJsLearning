@@ -23,6 +23,7 @@ title: 01-simple-llm.ts
 2. 如何配置 model 参数选择不同模型
 3. 如何使用 temperature 调节回复的随机性
 4. 如何调用 model.invoke() 获取回复
+5. 如何进行环境变量检查和错误处理
 
 ## 源码
 
@@ -30,17 +31,24 @@ title: 01-simple-llm.ts
 import "dotenv/config";
 import { ChatOpenAI } from "@langchain/openai";
 
+if (!process.env.ZHIPUAI_API_KEY) {
+  throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
+}
+
 const model = new ChatOpenAI({
   model: "Doubao-Seed-2.0-Code",
   temperature: 0.7,
 });
 
 async function main() {
-  console.log("=== 简单的 LLM 调用示例 ===\n");
-
-  const response = await model.invoke("你好，请介绍一下你自己。");
-
-  console.log("AI 回复:", response.content);
+  try {
+    console.log("=== 简单的 LLM 调用示例 ===\n");
+    const response = await model.invoke("你好，请介绍一下你自己。");
+    console.log("AI 回复:", response.content);
+  } catch (error) {
+    console.error("Error during LLM call:", error);
+    process.exit(1);
+  }
 }
 
 main().catch(console.error);

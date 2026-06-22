@@ -4,75 +4,87 @@ title: 04-vector-store.ts
 
 # 04-vector-store.ts
 
-向量存储示例，存储文档向量并进行相似度搜索。
+向量化示例，将文本转换为向量表示。
 
 ## 功能介绍
 
-这个示例演示了如何使用 MemoryVectorStore 将文档向量化并存储在内存中，然后进行相似度搜索，找到与查询最相关的文档块。
+这个示例演示了如何使用 OpenAIEmbeddings 将文本转换为向量（embedding），包括单个查询文本和多个文档块的向量化。
 
 ## 使用场景
 
-- 构建本地知识库检索
-- 实现语义搜索功能
-- 准备 RAG 系统的检索部分
-- 快速原型开发和测试
+- 将文档转换为向量存储
+- 计算文本之间的相似度
+- 构建语义搜索系统
+- 文本聚类和分类
 
 ## 学习要点
 
-1. 使用 `MemoryVectorStore.fromDocuments()` 创建向量存储
-2. 需要传入文档切分块和 embeddings 对象
-3. 使用 `similaritySearch(query, k)` 进行搜索，k 是返回结果数量
-4. 搜索结果按相似度排序返回
+1. 使用 `OpenAIEmbeddings` 创建向量化器
+2. 使用 `model` 而不是 `modelName` 参数
+3. `embedQuery()` 用于向量化单个查询文本
+4. `embedDocuments()` 用于批量向量化多个文档
+5. 向量是浮点数数组，维度取决于模型
+6. 进行环境变量检查和错误处理
 
 ## 源码
 
 ```typescript
 import "dotenv/config";
-import { TextLoader } from "langchain/document_loaders/fs/text";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { Document } from "@langchain/core/documents";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
-import * as path from "path";
-import { fileURLToPath } from "url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+if (!process.env.ZHIPUAI_API_KEY) {
+  throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
+}
 
 async function main() {
-  console.log("=== Vector Store 示例 ===\n");
+  try {
+    console.log("=== Embeddings 示例 ===\n");
 
-  const loader = new TextLoader(path.join(__dirname, "data", "sample-doc.txt"));
-  const docs = await loader.load();
+    // 创建示例文档
+    const doc = new Document({
+      pageContent: "LangChain 是一个用于开发由语言模型驱动的应用程序的框架。它提供了一套丰富的工具和组件。",
+      metadata: { source: "example" }
+    });
 
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 200,
-    chunkOverlap: 20,
-  });
-  const chunks = await splitter.splitDocuments(docs);
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 100,
+      chunkOverlap: 20,
+    });
 
-  const embeddings = new OpenAIEmbeddings({
-    modelName: "embedding-3",
-    configuration: {
-      baseURL: "https://open.bigmodel.cn/api/paas/v4/",
-      apiKey: process.env.ZHIPUAI_API_KEY,
-    },
-  });
+    const chunks: Document[] = await splitter.splitDocuments([doc]);
 
-  const vectorStore = await MemoryVectorStore.fromDocuments(
-    chunks,
-    embeddings
-  );
+    // 创建 embeddings
+    const embeddings = new OpenAIEmbeddings({
+      model: "embedding-3",
+      configuration: {
+        baseURL: "https://ark.cn-beijing.volces.com/api/coding/v3/",
+        apiKey: process.env.ZHIPUAI_API_KEY,
+      },
+    });
 
-  const query = "LangChain 的主要概念有哪些？";
-  console.log("查询:", query);
-  console.log("\n");
+    // 嵌入单个文本
+    const query = "LangChain 的主要概念有哪些？";
+    const queryEmbedding = await embeddings.embedQuery(query);
 
-  const results = await vectorStore.similaritySearch(query, 2);
+    console.log("Query:", query);
+    console.log("Embedding dimension:", queryEmbedding.length);
+    console.log("First 5 values:", queryEmbedding.slice(0, 5));
+    console.log("\n");
 
-  console.log("最相关的文档块:");
-  results.forEach((doc, i) => {
-    console.log(`\n--- 结果 ${i + 1} ---`);
-    console.log(doc.pageContent);
-  });
+    // 嵌入文档块
+    const chunkTexts = chunks.map((chunk: Document) => chunk.pageContent);
+    const chunkEmbeddings = await embeddings.embedDocuments(chunkTexts);
+
+    console.log("Embedded", chunkEmbeddings.length, "chunks");
+    chunkTexts.forEach((text: string, i: number) => {
+      console.log(`Chunk ${i + 1}: "${text.slice(0, 50)}..."`);
+    });
+  } catch (error) {
+    console.error("Error during embeddings example:", error);
+    process.exit(1);
+  }
 }
 
 main().catch(console.error);

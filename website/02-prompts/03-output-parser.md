@@ -21,19 +21,16 @@ title: 03-output-parser.ts
 ## 学习要点
 
 1. 使用 Zod 定义 schema：`z.object()`、`z.enum()`、`z.number()` 等
-2. 使用 `StructuredOutputParser.fromZodSchema()` 创建解析器
-3. 使用 `parser.getFormatInstructions()` 获取格式说明插入提示中
-4. 使用 `parser.parse()` 解析 AI 返回的内容
-5. 进行环境变量检查和错误处理
+2. 使用 `model.withStructuredOutput(schema)` 创建结构化输出模型（推荐方式）
+3. 直接调用 `.invoke()` 返回符合 schema 的对象，无需手动解析
+4. 进行环境变量检查和错误处理
 
 ## 源码
 
 ```typescript
 import "dotenv/config";
 import { ChatOpenAI } from "@langchain/openai";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { z } from "zod";
-import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 if (!process.env.ZHIPUAI_API_KEY) {
   throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
@@ -50,7 +47,7 @@ const model = new ChatOpenAI({
 
 async function main() {
   try {
-    console.log("=== 结构化输出解析器示例 ===\n");
+    console.log("=== 结构化输出示例 ===\n");
 
     const schema = z.object({
       sentiment: z.enum(["positive", "negative", "neutral"]).describe("情感倾向"),
@@ -58,28 +55,18 @@ async function main() {
       reasoning: z.string().describe("分析理由"),
     });
 
-    const parser = StructuredOutputParser.fromZodSchema(schema);
+    // 使用推荐的 withStructuredOutput API
+    const structuredModel = model.withStructuredOutput(schema);
 
-    const promptTemplate = ChatPromptTemplate.fromTemplate(`
-      分析以下文本的情感。
-
-      {format_instructions}
-
-      文本: {text}
-    `);
-
-    const prompt = await promptTemplate.format({
-      format_instructions: parser.getFormatInstructions(),
-      text: "这家餐厅的食物非常好吃，服务也很棒！",
-    });
-
-    console.log("生成的 Prompt:", prompt);
+    const text = "这家餐厅的食物非常好吃，服务也很棒！";
+    console.log("分析文本:", text);
     console.log("\n---\n");
 
-    const response = await model.invoke(prompt);
-    const parsed = await parser.parse(response.content as string);
+    const result = await structuredModel.invoke(
+      `分析以下文本的情感：\n${text}`
+    );
 
-    console.log("解析结果:", parsed);
+    console.log("解析结果:", result);
   } catch (error) {
     console.error("Error during output parser example:", error);
     process.exit(1);

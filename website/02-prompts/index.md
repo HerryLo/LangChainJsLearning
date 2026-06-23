@@ -8,7 +8,7 @@ title: 模块 2：Prompts（提示模板和输出解析器）
 
 - PromptTemplate：动态填充变量
 - ChatPromptTemplate：对话式提示
-- StructuredOutputParser：结构化输出（使用 Zod）
+- withStructuredOutput：结构化输出（使用 Zod）
 - FewShotPromptTemplate：少样本学习
 
 ## 示例列表

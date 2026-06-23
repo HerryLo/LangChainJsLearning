@@ -4,6 +4,8 @@ export default defineConfig({
   title: 'LangChain.js 教程',
   description: '循序渐进学习 LangChain.js',
 
+  base: '/LangChainJsLearning/',
+
   themeConfig: {
     nav: [
       { text: '首页', link: '/' },

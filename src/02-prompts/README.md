@@ -13,5 +13,5 @@ npm run dev src/02-prompts/04-few-shot-prompt.ts
 
 - PromptTemplate：动态填充变量
 - ChatPromptTemplate：对话式提示
-- StructuredOutputParser：结构化输出（使用 Zod）
+- withStructuredOutput：结构化输出（使用 Zod）
 - FewShotPromptTemplate：少样本学习

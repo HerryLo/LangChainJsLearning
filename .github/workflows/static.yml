@@ -37,9 +37,14 @@ jobs:
           node-version: 20
           cache: 'npm'
       - name: Install dependencies
-        run: npm install --registry https://registry.npmjs.org --package-lock=false
+        run: |
+          cd website
+          rm -f package-lock.json   # 删除旧锁文件（若不存在则忽略）
+          npm install --registry https://registry.npmjs.org
       - name: Build
-        run: npm run docs:build
+        run: |
+          cd website
+          npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

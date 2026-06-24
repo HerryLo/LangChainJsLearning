@@ -30,7 +30,7 @@ title: 04-few-shot-prompt.ts
 ```typescript
 import "dotenv/config";
 import { ChatOpenAI } from "@langchain/openai";
-import { FewShotPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
+import { FewShotChatMessagePromptTemplate, ChatPromptTemplate } from "@langchain/core/prompts";
 
 if (!process.env.ZHIPUAI_API_KEY) {
   throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
@@ -47,7 +47,7 @@ const model = new ChatOpenAI({
 
 async function main() {
   try {
-    console.log("=== FewShotPromptTemplate 示例 ===\n");
+    console.log("=== FewShotChatMessagePromptTemplate 示例 ===\n");
 
     const examples = [
       { input: "苹果", output: "水果" },
@@ -56,11 +56,11 @@ async function main() {
       { input: "菠菜", output: "蔬菜" },
     ];
 
-    const examplePrompt = PromptTemplate.fromTemplate(
+    const examplePrompt = ChatPromptTemplate.fromTemplate(
       "输入: {input}\n输出: {output}"
     );
 
-    const fewShotPrompt = new FewShotPromptTemplate({
+    const fewShotPrompt = new FewShotChatMessagePromptTemplate({
       examples,
       examplePrompt,
       prefix: "以下是食物分类的示例，请根据示例回答：",

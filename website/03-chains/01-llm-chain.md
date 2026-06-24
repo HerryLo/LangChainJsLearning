@@ -32,7 +32,6 @@ import "dotenv/config";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
-import { RunnableLambda } from "@langchain/core/runnables";
 
 if (!process.env.ZHIPUAI_API_KEY) {
   throw new Error("ZHIPUAI_API_KEY is not set in environment variables");
@@ -42,6 +41,7 @@ const model = new ChatOpenAI({
   model: "DeepSeek-V4-Pro",
   temperature: 0.7,
   configuration: {
+    // 火山方舟 ARK 端点（OpenAI 兼容）
     baseURL: "https://ark.cn-beijing.volces.com/api/coding/v3",
     apiKey: process.env.ZHIPUAI_API_KEY,
   },
@@ -67,7 +67,7 @@ async function main() {
   }
 }
 
-main().catch(console.error);
+main();
 ```
 
 ## 运行方式

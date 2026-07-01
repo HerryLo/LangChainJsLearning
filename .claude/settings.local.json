@@ -12,7 +12,15 @@
       "Bash(git rm *)",
       "Bash(npm show *)",
       "Bash(git ls-tree *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(git *)",
+      "Bash(grep -A 5 \"## 学习要点\" D:/dev/langchain_example/website/02-prompts/index.md)",
+      "Bash(grep -A 5 \"## 学习要点\" D:/dev/langchain_example/src/02-prompts/README.md)",
+      "Read(//tmp/**)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(ping -n 2 github.com)",
+      "Bash(echo \"---ls-files-exit-$?---\")",
+      "Bash(ping -n 3 github.com)"
     ]
   }
 }

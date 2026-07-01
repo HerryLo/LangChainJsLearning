@@ -64,8 +64,11 @@ async function main() {
       .pipe(model)
       .pipe(new StringOutputParser());
 
-    const result = await answerChain.invoke({ question });
-    console.log(result);
+    // 通过使用stream方法逐字输出结果 
+    const result = await answerChain.stream({ question });
+    for await (const chunk of result) {
+        process.stdout.write(chunk); // 会像打字一样，逐字输出
+    }
   } catch (error) {
     console.error("Error during router chain example:", error);
     process.exit(1);
